@@ -11,10 +11,10 @@ const PORT = 3000;
 app.engine('handlebars', exphbs.engine());
 app.set('view engine', 'handlebars');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(express.static(path.join(__dirname,"public")))
-//app.use(express.static(path.resolve(__dirname, 'views','layouts')));
-app.set('views', path.join(__dirname, 'views'));
-app.set('views', './views');
+
+app.use(express.static(path.resolve(__dirname, 'views','layouts')));
+app.set('layouts', path.join(__dirname, 'layouts'));
+app.set('views', 'views');
 app.use(express.json());
 app.use(bodyParser.json());
 // Respond to GET request on the root route
@@ -53,15 +53,16 @@ app.post('/clientesAdd', async (req, res) => {
 // Respond to GET request on the /about route
 app.get('/clientesAll', async (req, res) => {
 
-let todosClientes = (await cliente.findAll({raw:true})); //.then( (result) => res.status(200).json(result));
+let todosClientes = (await cliente.findAll({raw:true})); 
 
  for (let index = 0; index < todosClientes.length; index++) {
    console.log(todosClientes[index]);
   
  }
 
+ 
 
-  res.render('clientesTodos', {todosClientes});
+res.render('clientesTodos', {todosClientes});
 
 });
 
@@ -81,92 +82,55 @@ app.get('/clientesDel/:id', async (req, res) =>{
 
 app.get('/clientes/:id', async (req, res) => {
 
- const id = (req.params.id);
  
  
- var findCliente =  await cliente.findByPk(id, {raw:true}); 
+ const id = req.params.id;
+  var findCliente =  await cliente.findByPk(id,{raw:true}); 
+  
     
 
-    res.render('editarClientes', {findCliente});
+
+    res.render('clientesTodos', {findCliente});
   });
 
 
 
   // Rota de Atualização com PUT
-app.post('/clientes/edit/:id', async (req, res) => {
+app.post('/clientes/edit/', async (req, res) => {
 
-  id = req.body.id;
+
+  const id = req.body.id;
+  
+
+  const clienteUP = {
+       
+       nome : req.body.nome,
+       email : req.body.email,
+       senha : req.body.senha,
+  
+  }
+const clienteAtualizado =  await cliente.update(clienteUP, {where: {id : id} })
+ console.log("Cliente Atualizado", clienteAtualizado);
+
+
+  res.render('clientesTodos');
+ });
+
  
-     
-      nome = req.body.nome,
-      email = req.body.email,
-      senha = req.body.senha
   
-  
-
-  /// PROMISSE DE BUSCAR ID
-
-  const minhaPromise = new Promise((resolve, reject) => {
-  // Simula uma operação assíncrona
-  const idEncontrado =   cliente.findByPk(id ,{raw:true});
-  setTimeout(() => {
-    const sucesso = true;
-    if (sucesso) {
-      resolve("A operação foi concluída!");
-    } else {
-      reject(new Error("Ocorreu um erro durante a operação."));
-    }
-  }, 1000);
-});
-
-minhaPromise.then(mensagem => {
-    console.log(mensagem); // "A operação foi concluída!"
-  }).catch(erro => {
-    console.error(erro.message); // Imprime a mensagem de erro
-  });
-
-
-
-
-
-  
-
-  //PROMISSE DE UPDATE
-
-  // function atualizarRegistro(id, idEncontrado, nome, email, senha) {
-  // return new Promise((resolve, reject) => {
-  //   // Simulação de uma operação de banco de dados
-  //   const clienteAtualizado = cliente.update(nome, email, senha, {where: {id: idEncontrado} })
-  //   setTimeout(() => {
-  //     const sucesso = Math.random() > 0.2; // Simula 80% de sucesso
-  //     if (sucesso) {
-  //       resolve(`Registro ${id} E ${clienteAtualizado} atualizado com sucesso.`);
-  //     } else {
-  //       reject(new Error(`Falha ao atualizar registro ${id}.`));
-  //     }
-  //   }, 1000);
-  // });
-
-  // atualizarRegistro(id);
-//}
-
-  
-
+conn.authenticate().then(mensagem => {
     
- })
+    // Start the server  PORT = 3000;
 
- 
+    app.listen(PORT, () => {
 
-
-
-  
-conn.authenticate();
-
-
-// Start the server  PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Example app listening at http://localhost:${PORT}`);
-  console.log("Data:",dataAtual);
-  console.log("Hora:", horaAtual)
+    console.log(`App listening at http://localhost:${PORT}`);
+    console.log("Data:",dataAtual);
+   console.log("Hora:", horaAtual)
   
 });
+  }).catch(erro => {
+    console.error(erro.message); 
+  });;
+
+
